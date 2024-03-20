@@ -4,7 +4,7 @@ import {
   type NextPage,
 } from "next";
 import Head from "next/head";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Github, Twitter } from "lucide-react";
 
 import { ChatGPTEditor } from "../sections/ChatGPTEditor";
@@ -22,7 +22,7 @@ import {
   type TiktokenModel,
   type TiktokenEncoding,
 } from "tiktoken";
-import { getSegments } from "~/utils/segments";
+import { type Segment, getSegments } from "~/utils/segments";
 import { useRouter } from "next/router";
 
 function getUserSelectedEncoder(
@@ -101,17 +101,43 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   const [params, setParams] = useParams();
 
   const [encoder, setEncoder] = useState(() => getUserSelectedEncoder(params));
-  const data = getSegments(encoder, inputText);
+
+  const [data, setData] = useState([] as Segment[]); // Adjust this based on the expected data structure
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const newData = await getSegments(encoder, inputText);
+        setData(newData);
+        setError(null); // Reset error state if successful
+      } catch (err) {
+        setError("Failed to fetch data"); // Adjust error handling as needed
+        setData([] as Segment[]); // Reset data on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (inputText) {
+      // Consider fetching data only if `inputText` is not empty or based on other conditions
+      fetchData();
+    }
+  }, [encoder, inputText]); // Depend on encoder and inputText, so it refetches when these change
 
   return (
     <>
       <Head>
-        <title>Tiktokenizer</title>
+        <title>trailtoken</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto flex min-h-screen max-w-[1200px] flex-col gap-4 p-8">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-          <h1 className="text-4xl font-bold">Tiktokenizer</h1>
+          <h1 className="text-4xl font-bold">trailtoken</h1>
 
           <EncoderSelect
             value={params}
