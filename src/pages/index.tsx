@@ -81,7 +81,7 @@ function useParams() {
       return { encoder: router.query.encoder };
     }
 
-    return { model: "gpt-3.5-turbo" };
+    return { model: "gpt2" };
   }, [router.query]);
 
   const setParams = (model: ModelOnly) => {
