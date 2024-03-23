@@ -1,9 +1,21 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import grapheme
 from pydantic import BaseModel
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
+from tokenizers.tools import EncodingVisualizer
+
 
 app = FastAPI()
+
+# Add CORSMiddleware to the application instance
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 class TokenizationInput(BaseModel):
@@ -22,36 +34,40 @@ class Segment(BaseModel):
 
 
 def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[Segment]:
-    # Encode the input text, getting token ids
-    encoding = tokenizer.encode(input_text, add_special_tokens=False)
+    print(list(grapheme.graphemes(input_text)))
 
-    # Prepare accumulators for bytes and tokens
-    byte_acc: list[str] = []
-    token_acc: list[Token] = []
-    segments: list[Segment] = []
+    encoding = tokenizer._tokenizer.encode(input_text)
 
-    # Split input text into graphemes
-    input_graphemes = grapheme.graphemes(input_text)
+    char_states = EncodingVisualizer._EncodingVisualizer__make_char_states(input_text, encoding, [])
 
-    for idx, token_id in enumerate(encoding):
-        # Decode each token id to its corresponding string representation
-        token_str = tokenizer.decode([token_id])
+    current_consecutive_chars = [char_states[0]]
+    segments_raw = []
 
-        byte_acc.append(token_str)
-        token_acc.append(Token(id=token_id, idx=idx))
+    for cs in char_states[1:]:
+        if cs.partition_key() == current_consecutive_chars[0].partition_key():
+            # If the current character is in the same "group" as the previous one
+            current_consecutive_chars.append(cs)
+        else:
+            # Otherwise we make a span for the previous group
+            segments_raw.append(current_consecutive_chars)
+            # An reset the consecutive_char_list to form a new group
+            current_consecutive_chars = [cs]
 
-        # Attempt to decode the accumulated bytes to text
-        segment_text = ''.join(byte_acc)
-        graphemes = list(grapheme.graphemes(segment_text))
+    segments_raw.append(current_consecutive_chars)
 
-        # Check if the decoded text matches the input graphemes so far
-        if graphemes == input_graphemes[:len(graphemes)]:
-            segments.append(Segment(text=segment_text, tokens=token_acc))
-            byte_acc = []
-            token_acc = []
-            input_graphemes = input_graphemes[len(graphemes):]
+    token_index_list = [x[-1].tokens for x in segments_raw]
 
-    return segments
+    tokens_id_list = [[encoding.ids[token_idx] for token_idx in segment] for segment in token_index_list]
+
+    texts = [tokenizer.decode(segment) for segment in tokens_id_list]
+    print(texts)
+
+    tokens = [
+        [Token(id=token_id, idx=token_index) for token_id, token_index in zip(token_ids, token_indices)]
+        for token_ids, token_indices in zip(tokens_id_list, token_index_list)
+    ]
+
+    return [Segment(text=text, tokens=tokens) for text, tokens in zip(texts, tokens)]
 
 
 @app.post("/tokenize")
@@ -62,6 +78,9 @@ def tokenize(tokenization_input: TokenizationInput) -> list[Segment] | None:
         # @TODO: return something better
         return None
 
-    segments = get_segments(tokenizer, tokenization_input.input_text)
+    return get_segments(tokenizer, tokenization_input.input_text)
 
-    return segments
+
+if __name__ == "__main__":
+    tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
+    print(get_segments(tokenizer, "👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿"))
