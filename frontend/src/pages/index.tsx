@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { Github, Twitter } from "lucide-react";
 
 import { TokenViewer } from "~/sections/TokenViewer";
-import { TextArea } from "~/components/Input";
+import { TextArea, TokenizerInput } from "~/components/Input";
 import { Button } from "~/components/Button";
 
 // function isChatModel(
@@ -73,36 +73,42 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
 
   return (
     <>
-      <Head>
-        <title>trailtoken</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <main className="mx-auto flex min-h-screen max-w-[1200px] flex-col gap-4 p-8">
+        <Head>
+          <title>trailtoken</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <h1 className="text-4xl font-bold">trailtoken</h1>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <section className="flex flex-col gap-4">
-            <TextArea
-              value={tokenizerName}
-              onChange={(e) => setTokenizerName(e.target.value)}
-              className="min-h-[256px] rounded-md border p-4 font-mono shadow-sm"
-            />
-            <TextArea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="min-h-[256px] rounded-md border p-4 font-mono shadow-sm"
-            />
-            <Button onClick={fetchData}>Tokenize</Button>
-          </section>
-
-          <section className="flex flex-col gap-4">
-            <TokenViewer data={data} isFetching={isFetching} />
-            {/* @TODO: Cia ChatGPT response, reiktu gal labiau pacheckint */}
-            {error && <p>Error: {error}</p>}
-          </section>
+        {/* Line 2: Tokenizer Input across the grid */}
+        <div className="grid gap-4 md:grid-cols-1">
+          <TextArea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            className="min-h-[256px] rounded-md border p-4 font-mono shadow-sm"
+          />
         </div>
+
+        {/* Line 1: TokenizerInput and Tokenize Button with space between */}
+        <div className="flex justify-between items-center gap-4">
+          <TokenizerInput
+            value={tokenizerName}
+            onChange={(e) => setTokenizerName(e.target.value)}
+            className="flex-grow rounded-md border p-4 font-mono shadow-sm mr-2" // Added margin-right to TokenizerInput
+          />
+          <Button onClick={fetchData} className="ml-2">Tokenize</Button>
+        </div>
+
+
+
+        {/* Line 3: TokenViewer */}
+        <div className="grid gap-4 md:grid-cols-1">
+          <TokenViewer data={data} isFetching={isFetching} />
+          {error && <p>Error: {error}</p>}
+        </div>
+
         <style jsx>
           {`
             .diagram-link:hover > span {
@@ -135,7 +141,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://duong.dev" // Pridet Lauryno link
+              href="https://www.linkedin.com/in/laurynas-lopata-46a23480/" 
             >
               Laurynas Lopata
             </a>
@@ -162,13 +168,13 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://twitter.com/__dqbd" // @ TODO: pridet Lauryno twitter
+              href="https://twitter.com/CS_Laurynas" 
             >
               <Twitter />
             </a>
           </div>
         </div>
-      </main>
+      </main >
     </>
   );
 };
