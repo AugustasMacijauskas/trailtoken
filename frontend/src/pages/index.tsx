@@ -92,20 +92,21 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
         </div>
 
         {/* Line 1: TokenizerInput and Tokenize Button with space between */}
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex items-center justify-between gap-4">
           <TokenizerInput
             value={tokenizerName}
             onChange={(e) => setTokenizerName(e.target.value)}
-            className="flex-grow rounded-md border p-4 font-mono shadow-sm mr-2" // Added margin-right to TokenizerInput
+            className="mr-2 flex-grow rounded-md border p-4 font-mono shadow-sm" // Added margin-right to TokenizerInput
           />
-          <Button onClick={fetchData} className="ml-2">Tokenize</Button>
+          <Button onClick={fetchData} className="ml-2">
+            Tokenize
+          </Button>
         </div>
-
-
 
         {/* Line 3: TokenViewer */}
         <div className="grid gap-4 md:grid-cols-1">
           <TokenViewer data={data} isFetching={isFetching} />
+          {/* @TODO: handle errors better */}
           {error && <p>Error: {error}</p>}
         </div>
 
@@ -141,7 +142,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://www.linkedin.com/in/laurynas-lopata-46a23480/" 
+              href="https://www.linkedin.com/in/laurynas-lopata-46a23480/"
             >
               Laurynas Lopata
             </a>
@@ -168,13 +169,13 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://twitter.com/CS_Laurynas" 
+              href="https://twitter.com/CS_Laurynas"
             >
               <Twitter />
             </a>
           </div>
         </div>
-      </main >
+      </main>
     </>
   );
 };
