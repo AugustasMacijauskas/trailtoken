@@ -11,7 +11,7 @@ const config = {
   reactStrictMode: true,
 
   output: "export",
-  // basePath: "/trailtoken",
+  basePath: "/trailtoken",
 
   /**
    * If you have the "experimental: { appDir: true }" setting enabled, then you
@@ -33,6 +33,5 @@ const config = {
     return config;
   },
 };
-
 
 export default config;

@@ -7,7 +7,6 @@ import { TokenViewer } from "~/sections/TokenViewer";
 import { TextArea, TokenizerInput } from "~/components/Input";
 import { Button } from "~/components/Button";
 
-
 const Home: NextPage = () => {
   // @TODO: this should probably be a more sensible default or empty?
   const [tokenizerName, setTokenizerName] = useState<string>(
@@ -45,7 +44,8 @@ const Home: NextPage = () => {
       const result = await response.json();
       console.log(result);
       setData(result);
-    } catch (error: any) { // TODO: set up proper error handling
+    } catch (error: any) {
+      // TODO: set up proper error handling
       setError(error.message);
     } finally {
       setIsFetching(false);
@@ -57,7 +57,10 @@ const Home: NextPage = () => {
       <main className="mx-auto flex min-h-screen max-w-[1200px] flex-col gap-4 p-8">
         <Head>
           <title>trailtoken</title>
-          <link rel="icon" href="/favicon.ico" />
+          <link
+            rel="icon"
+            href="/trailtoken/icons8-artificial-intelligence-96.png"
+          />
         </Head>
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <h1 className="text-4xl font-bold">trailtoken</h1>
@@ -73,16 +76,16 @@ const Home: NextPage = () => {
         </div>
 
         {/* Line 1: TokenizerInput and Tokenize Button with space between */}
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex items-center justify-between gap-4">
           <TokenizerInput
             value={tokenizerName}
             onChange={(e) => setTokenizerName(e.target.value)}
-            className="flex-grow rounded-md border p-4 font-mono shadow-sm mr-2" // Added margin-right to TokenizerInput
+            className="mr-2 flex-grow rounded-md border p-4 font-mono shadow-sm" // Added margin-right to TokenizerInput
           />
-          <Button onClick={fetchData} className="ml-2">Tokenize</Button>
+          <Button onClick={fetchData} className="ml-2">
+            Tokenize
+          </Button>
         </div>
-
-
 
         {/* Line 3: TokenViewer */}
         <div className="grid gap-4 md:grid-cols-1">
@@ -122,7 +125,7 @@ const Home: NextPage = () => {
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://www.linkedin.com/in/laurynas-lopata-46a23480/" 
+              href="https://www.linkedin.com/in/laurynas-lopata-46a23480/"
             >
               Laurynas Lopata
             </a>
@@ -149,13 +152,13 @@ const Home: NextPage = () => {
               target="_blank"
               rel="noreferrer"
               className="text-slate-800"
-              href="https://twitter.com/CS_Laurynas" 
+              href="https://twitter.com/CS_Laurynas"
             >
               <Twitter />
             </a>
           </div>
         </div>
-      </main >
+      </main>
     </>
   );
 };
