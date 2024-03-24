@@ -1,9 +1,15 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import grapheme
 from pydantic import BaseModel
-from transformers import AutoTokenizer, PreTrainedTokenizerBase
-from tokenizers.tools import EncodingVisualizer
+from transformers import AutoTokenizer, GPT2TokenizerFast, PreTrainedTokenizerBase
+
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 app = FastAPI()
@@ -34,53 +40,52 @@ class Segment(BaseModel):
 
 
 def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[Segment]:
-    print(list(grapheme.graphemes(input_text)))
+    graphemes = list(grapheme.graphemes(input_text))
 
-    encoding = tokenizer._tokenizer.encode(input_text)
+    # @TODO: think about whether we want to add special tokens or how to deal with them if we do
+    encoding = tokenizer.encode(input_text, add_special_tokens=False)
 
-    char_states = EncodingVisualizer._EncodingVisualizer__make_char_states(input_text, encoding, [])
+    segments: list[Segment] = []
 
-    current_consecutive_chars = [char_states[0]]
-    segments_raw = []
+    curr_text = ""
+    curr_tokens: list[Token] = []
+    for idx, token_id in enumerate(encoding):
+        curr_text = tokenizer.decode([x.id for x in curr_tokens] + [token_id])
+        curr_tokens.append(Token(id=token_id, idx=idx))
 
-    for cs in char_states[1:]:
-        if cs.partition_key() == current_consecutive_chars[0].partition_key():
-            # If the current character is in the same "group" as the previous one
-            current_consecutive_chars.append(cs)
-        else:
-            # Otherwise we make a span for the previous group
-            segments_raw.append(current_consecutive_chars)
-            # An reset the consecutive_char_list to form a new group
-            current_consecutive_chars = [cs]
+        curr_graphemes = list(grapheme.graphemes(curr_text))
+        if len(curr_graphemes) <= len(graphemes) and all(
+            [graphemes[idx] == item for idx, item in enumerate(curr_graphemes)]
+        ):
+            segments.append(Segment(text=curr_text, tokens=curr_tokens))
 
-    segments_raw.append(current_consecutive_chars)
+            graphemes = graphemes[len(curr_graphemes):]
+            curr_text = ""
+            curr_tokens = []
 
-    token_index_list = [x[-1].tokens for x in segments_raw]
+    return segments
 
-    tokens_id_list = [[encoding.ids[token_idx] for token_idx in segment] for segment in token_index_list]
 
-    texts = [tokenizer.decode(segment) for segment in tokens_id_list]
-    print(texts)
+def load_tokenizer(tokenizer_name):
+    # @ TODO: think of what other tokenizer classes might we want to support
+    tokenizer_classes = [AutoTokenizer, GPT2TokenizerFast]
 
-    tokens = [
-        [Token(id=token_id, idx=token_index) for token_id, token_index in zip(token_ids, token_indices)]
-        for token_ids, token_indices in zip(tokens_id_list, token_index_list)
-    ]
+    tokenizer = None
+    for tokenizer_class in tokenizer_classes:
+        try:
+            tokenizer = tokenizer_class.from_pretrained(tokenizer_name, token=os.getenv("HF_ACCESS_TOKEN"))
+            break
+        except Exception:
+            continue
 
-    return [Segment(text=text, tokens=tokens) for text, tokens in zip(texts, tokens)]
+    return tokenizer
 
 
 @app.post("/tokenize")
 def tokenize(tokenization_input: TokenizationInput) -> list[Segment] | None:
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(tokenization_input.tokenizer_name)
-    except ValueError:
+    tokenizer = load_tokenizer(tokenization_input.tokenizer_name)
+    if tokenizer is None:
         # @TODO: return something better
         return None
 
     return get_segments(tokenizer, tokenization_input.input_text)
-
-
-if __name__ == "__main__":
-    tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
-    print(get_segments(tokenizer, "👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿"))
