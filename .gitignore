@@ -31,5 +31,5 @@ yarn-error.log*
 
 # python
 **/.pytest_cache
-**/**/__pycache__
+**/__pycache__/
 **/.mypy_cache
