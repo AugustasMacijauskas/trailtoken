@@ -3,7 +3,7 @@ name: publish-to-github-pages
 on:
   push:
     branches:
-      - frotend-deployment
+      - main
 
 permissions:
   contents: read
