@@ -1,6 +1,6 @@
-# tokentrail
+# trailtoken
 
-An application that visualises LLM tokenizers
+An application that visualises LLM tokenizers.
 
 
 # Usage

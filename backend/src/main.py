@@ -14,10 +14,16 @@ load_dotenv()
 
 app = FastAPI()
 
+origins = [
+    # @TODO: check if it is necessary to load these from .env
+    os.getenv("LOCALHOST_URL"),
+    os.getenv("FRONTEND_URL"),
+]
+
 # Add CORSMiddleware to the application instance
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers

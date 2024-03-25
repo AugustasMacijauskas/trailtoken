@@ -19,6 +19,7 @@
 1. Paziuret, ar mums svarbu exposint tokius `AutoTokenizer.from_pretrained` parametrus kaip `revision`, `subfolder`, `use_fast`, `trust_remote_code` (galbut yra ir kitu)
     - Itariu, kad truputi pamaste sumastytume kaip per daug nesivarginant sita padaryt, gal pvz padaryt, kad request body gali `kwargs` acceptint
 1. Kaip busim done su frontend praeit failus istrint nereikalingus dalykus bei siaip pasiaiskint, kokiu ten libu prirasyta, gal irgi ne visko reikia
+    - Turbut neblogas budas tai padaryt butu eit per `package.json`, pagooglint ka kiekvienas library daro ir jei manom, kad nereikia, istrinam (tik ten reikia kazkaip specifiskai trint su npm, man atrodo neuztenka tiesiog istrint is `package.json`, reikia patikrint)
 1. ~~Pahostint frontend kazkur~~
     1. ~~Tikriausiai kokiam GitHub pages~~
 1. Pahostint backend kazkur
