@@ -1,8 +1,4 @@
-import {
-  type GetServerSideProps,
-  type InferGetServerSidePropsType,
-  type NextPage,
-} from "next";
+import { type NextPage } from "next";
 import Head from "next/head";
 import { useMemo, useState } from "react";
 import { Github, Twitter } from "lucide-react";
@@ -11,23 +7,7 @@ import { TokenViewer } from "~/sections/TokenViewer";
 import { TextArea, TokenizerInput } from "~/components/Input";
 import { Button } from "~/components/Button";
 
-// function isChatModel(
-//   params: { model: TiktokenModel } | { encoder: TiktokenEncoding }
-// ): params is {
-//   model: "gpt-3.5-turbo" | "gpt-4" | "gpt-4-32k" | "gpt-4-1106-preview";
-// } {
-//   return (
-//     "model" in params &&
-//     (params.model === "gpt-3.5-turbo" ||
-//       params.model === "gpt-4" ||
-//       params.model === "gpt-4-1106-preview" ||
-//       params.model === "gpt-4-32k")
-//   );
-// }
-
-const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
-  props
-) => {
+const Home: NextPage = () => {
   // @TODO: this should probably be a more sensible default or empty?
   const [tokenizerName, setTokenizerName] = useState<string>(
     "openai-community/gpt2"
@@ -67,7 +47,8 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       const result = await response.json();
       console.log(result);
       setData(result);
-    } catch (error) {
+    } catch (error: any) {
+      // TODO: set up proper error handling
       setError(error.message);
     } finally {
       setIsFetching(false);
@@ -79,7 +60,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       <main className="mx-auto flex min-h-screen max-w-[1200px] flex-col gap-4 p-8">
         <Head>
           <title>trailtoken</title>
-          <link rel="icon" href="/favicon.ico" />
+          <link
+            rel="icon"
+            href="/trailtoken/icons8-artificial-intelligence-96.png"
+          />
         </Head>
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <h1 className="text-4xl font-bold">trailtoken</h1>
@@ -181,10 +165,6 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       </main>
     </>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  return { props: { query: context.query } };
 };
 
 export default Home;
