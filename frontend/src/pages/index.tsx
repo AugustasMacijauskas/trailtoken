@@ -27,6 +27,7 @@ const Home: NextPage = () => {
   const fetchData = async () => {
     setIsFetching(true);
     try {
+      // @TODO: add a check if env is development and then make the request to localhost
       const response = await fetch(
         "https://augustasm.pythonanywhere.com/tokenize",
         {

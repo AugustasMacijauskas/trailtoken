@@ -20,7 +20,7 @@ origins = [
     os.getenv("FRONTEND_URL"),
 ]
 origins = [origin for origin in origins if origin is not None]
-CORS(app, origins=origins, supports_credentials=True, methods=["*"], allow_headers=["*"])
+CORS(app, resources={r"/tokenize": {"origins": origins, "allow_headers": ["Content-Type"]}})
 
 
 class TokenSchema(Schema):
@@ -56,6 +56,7 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
 
     # @TODO: think about whether we want to add special tokens or how to deal with them if we do
     encoding = tokenizer.encode(input_text, add_special_tokens=False)
+    id2token = {v: k for k, v in tokenizer.get_vocab().items()}
 
     segments: list[Segment] = []
 
@@ -64,6 +65,8 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
     for idx, token_id in enumerate(encoding):
         curr_text = tokenizer.decode([token.id for token in curr_tokens] + [token_id])
         curr_tokens.append(Token(id=token_id, idx=idx))
+        if idx > 0 and id2token[curr_tokens[0].id].startswith("▁"):
+            curr_text = " " + curr_text
 
         curr_graphemes = list(grapheme.graphemes(curr_text))
         if len(curr_graphemes) <= len(graphemes) and all(
@@ -93,12 +96,12 @@ def load_tokenizer(tokenizer_name):
     return tokenizer
 
 
-@app.route('/tokenize', methods=['POST'])
+@app.route("/tokenize", methods=["POST"])
 def tokenize():
     # Parse the input using Marshmallow or directly from Flask's request object
     data = request.get_json()
-    tokenizer_name = data.get('tokenizer_name')
-    input_text = data.get('input_text')
+    tokenizer_name = data.get("tokenizer_name")
+    input_text = data.get("input_text")
 
     if not tokenizer_name or not input_text:
         return jsonify({"error": "Missing tokenizer_name or input_text"}), 400
