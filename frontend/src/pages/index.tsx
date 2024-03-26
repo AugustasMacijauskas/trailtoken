@@ -27,7 +27,7 @@ const Home: NextPage = () => {
   const fetchData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/tokenize", {
+      const response = await fetch("augustasm.pythonanywhere.com/tokenize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,6 +90,7 @@ const Home: NextPage = () => {
         {/* Line 3: TokenViewer */}
         <div className="grid gap-4 md:grid-cols-1">
           <TokenViewer data={data} isFetching={isFetching} />
+          {/* @TODO: handle errors better */}
           {error && <p>Error: {error}</p>}
         </div>
 
