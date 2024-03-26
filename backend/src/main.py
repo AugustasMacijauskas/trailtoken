@@ -1,10 +1,10 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import grapheme
-from pydantic import BaseModel
+from marshmallow import Schema, fields
 from transformers import AutoTokenizer, GPT2TokenizerFast, PreTrainedTokenizerBase
 
 
@@ -12,40 +12,46 @@ from transformers import AutoTokenizer, GPT2TokenizerFast, PreTrainedTokenizerBa
 load_dotenv()
 
 
-app = FastAPI()
+app = Flask(__name__)
 
+# Setup CORS with origins loaded from environment variables
 origins = [
-    # @TODO: check if it is necessary to load these from .env
     os.getenv("LOCALHOST_URL"),
     os.getenv("FRONTEND_URL"),
 ]
-
-# Add CORSMiddleware to the application instance
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+origins = [origin for origin in origins if origin is not None]
+CORS(app, origins=origins, supports_credentials=True, methods=["*"], allow_headers=["*"])
 
 
-class TokenizationInput(BaseModel):
-    tokenizer_name: str
-    input_text: str
+class TokenSchema(Schema):
+    id = fields.Int()
+    idx = fields.Int()
 
 
-class Token(BaseModel):
-    id: int
-    idx: int
+class SegmentSchema(Schema):
+    text = fields.Str()
+    tokens = fields.List(fields.Nested(TokenSchema))
 
 
-class Segment(BaseModel):
-    text: str
-    tokens: list[Token]
+class Token:
+    def __init__(self, id: int, idx: int):
+        self.id = id
+        self.idx = idx
+
+    def to_dict(self):
+        return {"id": self.id, "idx": self.idx}
 
 
-def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[Segment]:
+class Segment:
+    def __init__(self, text: str, tokens: list[Token]):
+        self.text = text
+        self.tokens = tokens
+
+    def to_dict(self):
+        return {"text": self.text, "tokens": [token.to_dict() for token in self.tokens]}
+
+
+def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[dict]:
     graphemes = list(grapheme.graphemes(input_text))
 
     # @TODO: think about whether we want to add special tokens or how to deal with them if we do
@@ -56,12 +62,12 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[Se
     curr_text = ""
     curr_tokens: list[Token] = []
     for idx, token_id in enumerate(encoding):
-        curr_text = tokenizer.decode([x.id for x in curr_tokens] + [token_id])
+        curr_text = tokenizer.decode([token.id for token in curr_tokens] + [token_id])
         curr_tokens.append(Token(id=token_id, idx=idx))
 
         curr_graphemes = list(grapheme.graphemes(curr_text))
         if len(curr_graphemes) <= len(graphemes) and all(
-            [graphemes[idx] == item for idx, item in enumerate(curr_graphemes)]
+            graphemes[idx] == item for idx, item in enumerate(curr_graphemes)
         ):
             segments.append(Segment(text=curr_text, tokens=curr_tokens))
 
@@ -69,7 +75,7 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[Se
             curr_text = ""
             curr_tokens = []
 
-    return segments
+    return [segment.to_dict() for segment in segments]
 
 
 def load_tokenizer(tokenizer_name):
@@ -87,11 +93,25 @@ def load_tokenizer(tokenizer_name):
     return tokenizer
 
 
-@app.post("/tokenize")
-def tokenize(tokenization_input: TokenizationInput) -> list[Segment] | None:
-    tokenizer = load_tokenizer(tokenization_input.tokenizer_name)
-    if tokenizer is None:
-        # @TODO: return something better
-        return None
+@app.route('/tokenize', methods=['POST'])
+def tokenize():
+    # Parse the input using Marshmallow or directly from Flask's request object
+    data = request.get_json()
+    tokenizer_name = data.get('tokenizer_name')
+    input_text = data.get('input_text')
 
-    return get_segments(tokenizer, tokenization_input.input_text)
+    if not tokenizer_name or not input_text:
+        return jsonify({"error": "Missing tokenizer_name or input_text"}), 400
+
+    tokenizer = load_tokenizer(tokenizer_name)
+    if tokenizer is None:
+        return jsonify({"error": "Failed to load tokenizer"}), 400
+
+    segments = get_segments(tokenizer, input_text)
+    segment_schema = SegmentSchema(many=True)
+    result = segment_schema.dump(segments)
+    return jsonify(result)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

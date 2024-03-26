@@ -47,7 +47,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   const fetchData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/tokenize", {
+      const response = await fetch("augustasm.pythonanywhere.com/tokenize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

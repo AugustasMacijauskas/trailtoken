@@ -1,11 +1,13 @@
-from fastapi.testclient import TestClient
 import pytest
 from transformers import AutoTokenizer
 
-from main import app, get_segments, Segment, Token
+from main import app, get_segments
 
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    with app.test_client() as client:
+        yield client
 
 
 @pytest.mark.parametrize(
@@ -269,11 +271,14 @@ client = TestClient(app)
         ),
     ],
 )
-def test_get_segments(input_text, tokenizer_name, expected_output):
+def test_get_segments(client, input_text, tokenizer_name, expected_output):
     response = client.post("/tokenize", json={"input_text": input_text, "tokenizer_name": tokenizer_name})
 
+    # Ensure the response data is loaded correctly
+    data = response.get_json()
+
     assert response.status_code == 200
-    assert response.json() == expected_output
+    assert data == expected_output
 
 
 @pytest.mark.parametrize(
@@ -292,4 +297,4 @@ def test_get_segments(input_text, tokenizer_name, expected_output):
 def test_get_segments_edge_cases(input_text, expected_output):
     tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
 
-    assert [x.text for x in get_segments(tokenizer, input_text)] == expected_output
+    assert [x["text"] for x in get_segments(tokenizer, input_text)] == expected_output
