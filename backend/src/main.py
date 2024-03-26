@@ -20,7 +20,7 @@ origins = [
     os.getenv("FRONTEND_URL"),
 ]
 origins = [origin for origin in origins if origin is not None]
-CORS(app, origins=origins, supports_credentials=True, methods=["*"], allow_headers=["*"])
+CORS(app, resources={r"/tokenize": {"origins": origins, "allow_headers": ["Content-Type"]}})
 
 
 class TokenSchema(Schema):
