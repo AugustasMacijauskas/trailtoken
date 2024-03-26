@@ -27,17 +27,20 @@ const Home: NextPage = () => {
   const fetchData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch("augustasm.pythonanywhere.com/tokenize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Add any other headers your API needs
-        },
-        body: JSON.stringify({
-          tokenizer_name: tokenizerName,
-          input_text: inputText,
-        }),
-      });
+      const response = await fetch(
+        "https://augustasm.pythonanywhere.com/tokenize",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Add any other headers your API needs
+          },
+          body: JSON.stringify({
+            tokenizer_name: tokenizerName,
+            input_text: inputText,
+          }),
+        }
+      );
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
