@@ -18,9 +18,11 @@ app = Flask(__name__)
 origins = [
     os.getenv("LOCALHOST_URL"),
     os.getenv("FRONTEND_URL"),
+
 ]
 origins = [origin for origin in origins if origin is not None]
 CORS(app, resources={r"/tokenize": {"origins": origins, "allow_headers": ["Content-Type"]}})
+# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 
 class TokenSchema(Schema):
@@ -54,8 +56,12 @@ class Segment:
 def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[dict]:
     graphemes = list(grapheme.graphemes(input_text))
 
+    if 'bert' in tokenizer.__class__.__name__.lower():
+        graphemes = [grapheme.lower() for grapheme in graphemes]
+
     # @TODO: think about whether we want to add special tokens or how to deal with them if we do
     encoding = tokenizer.encode(input_text, add_special_tokens=False)
+
     id2token = {v: k for k, v in tokenizer.get_vocab().items()}
 
     segments: list[Segment] = []
@@ -64,19 +70,26 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
     curr_tokens: list[Token] = []
     for idx, token_id in enumerate(encoding):
         curr_text = tokenizer.decode([token.id for token in curr_tokens] + [token_id])
+
         curr_tokens.append(Token(id=token_id, idx=idx))
+
         if idx > 0 and id2token[curr_tokens[0].id].startswith("▁"):
             curr_text = " " + curr_text
 
         curr_graphemes = list(grapheme.graphemes(curr_text))
+
         if len(curr_graphemes) <= len(graphemes) and all(
             graphemes[idx] == item for idx, item in enumerate(curr_graphemes)
         ):
             segments.append(Segment(text=curr_text, tokens=curr_tokens))
 
-            graphemes = graphemes[len(curr_graphemes):]
+            graphemes = graphemes[len(curr_graphemes):]            
             curr_text = ""
             curr_tokens = []
+
+            if 'bert' in tokenizer.__class__.__name__.lower() and len(graphemes) > 0 and graphemes[0] == " ":
+                graphemes = graphemes[1:]
+            
 
     return [segment.to_dict() for segment in segments]
 
@@ -112,6 +125,7 @@ def tokenize():
 
     segments = get_segments(tokenizer, input_text)
     segment_schema = SegmentSchema(many=True)
+
     result = segment_schema.dump(segments)
     return jsonify(result)
 

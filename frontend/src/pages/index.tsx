@@ -29,7 +29,8 @@ const Home: NextPage = () => {
     try {
       // @TODO: add a check if env is development and then make the request to localhost
       const response = await fetch(
-        "https://augustasm.pythonanywhere.com/tokenize",
+        // "https://augustasm.pythonanywhere.com/tokenize",
+        "http://127.0.0.1:5000/tokenize",
         {
           method: "POST",
           headers: {
