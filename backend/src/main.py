@@ -5,7 +5,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import grapheme
 from marshmallow import Schema, fields
-from transformers import AutoTokenizer, GPT2TokenizerFast, PreTrainedTokenizerBase
+from transformers import AutoTokenizer, GPT2TokenizerFast, PreTrainedTokenizerBase, BertTokenizer, BertTokenizerFast
+from tokenizers.tools import EncodingVisualizer
 
 
 # Load environment variables from .env file
@@ -22,7 +23,6 @@ origins = [
 ]
 origins = [origin for origin in origins if origin is not None]
 CORS(app, resources={r"/tokenize": {"origins": origins, "allow_headers": ["Content-Type"]}})
-# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 
 class TokenSchema(Schema):
@@ -49,18 +49,59 @@ class Segment:
         self.text = text
         self.tokens = tokens
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {"text": self.text, "tokens": [token.to_dict() for token in self.tokens]}
 
 
-def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[dict]:
-    graphemes = list(grapheme.graphemes(input_text))
+# @TODO: add test cases for this code
+def get_segments_bert_tokenizer(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[dict]:
+    encoding = tokenizer._tokenizer.encode(input_text)
 
-    if 'bert' in tokenizer.__class__.__name__.lower():
-        graphemes = [grapheme.lower() for grapheme in graphemes]
+    char_states = EncodingVisualizer._EncodingVisualizer__make_char_states(input_text, encoding, [])
+
+    current_consecutive_chars = [char_states[0]]
+    segments_raw = []
+
+    for cs in char_states[1:]:
+        if cs.partition_key() == current_consecutive_chars[0].partition_key():
+            # If the current character is in the same "group" as the previous one
+            current_consecutive_chars.append(cs)
+        else:
+            # Otherwise we make a span for the previous group
+            segments_raw.append(current_consecutive_chars)
+            # An reset the consecutive_char_list to form a new group
+            current_consecutive_chars = [cs]
+
+    segments_raw.append(current_consecutive_chars)
+
+    token_index_list = [x[-1].tokens for x in segments_raw]
+
+    tokens_id_list = [[encoding.ids[token_idx] for token_idx in segment] for segment in token_index_list]
+
+    # @TODO: add explanations for what this code is doing
+    texts = [tokenizer.decode(segment) for segment in tokens_id_list]
+    texts = [text if idx == 0 or text == "" else " " + text for idx, text in enumerate(texts)]
+    texts = [text if not text.startswith(" ##") else text[1:] for text in texts]
+
+    tokens = [
+        [Token(id=token_id, idx=token_index) for token_id, token_index in zip(token_ids, token_indices)]
+        for token_ids, token_indices in zip(tokens_id_list, token_index_list)
+    ]
+
+    return [Segment(text=text, tokens=tokens).to_dict() for text, tokens in zip(texts, tokens)]
+
+
+def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[dict]:
+    is_bert = isinstance(tokenizer, (BertTokenizer, BertTokenizerFast))
+    print(f"{is_bert=}")
+
+    if is_bert:
+        return get_segments_bert_tokenizer(tokenizer, input_text)
 
     # @TODO: think about whether we want to add special tokens or how to deal with them if we do
     encoding = tokenizer.encode(input_text, add_special_tokens=False)
+
+    graphemes = list(grapheme.graphemes(input_text))
 
     id2token = {v: k for k, v in tokenizer.get_vocab().items()}
 
@@ -86,10 +127,6 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
             graphemes = graphemes[len(curr_graphemes):]            
             curr_text = ""
             curr_tokens = []
-
-            if 'bert' in tokenizer.__class__.__name__.lower() and len(graphemes) > 0 and graphemes[0] == " ":
-                graphemes = graphemes[1:]
-            
 
     return [segment.to_dict() for segment in segments]
 
