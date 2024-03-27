@@ -19,3 +19,10 @@ npm run lint # for linting
 npm run build # build the site
 npm run start # run the built site
 ```
+
+# Tests
+
+Check test coverage with
+```bash
+pytest --cov-report=term-missing:skip-covered --cov=src/
+```
