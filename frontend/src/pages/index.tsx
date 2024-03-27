@@ -11,6 +11,7 @@ const Home: NextPage = () => {
   // @TODO: this should probably be a more sensible default or empty?
   const [tokenizerName, setTokenizerName] = useState<string>(
     "openai-community/gpt2"
+    // "google-bert/bert-base-cased"
   );
 
   // @TODO: this text is here for quick testing, it should be more sensible or empty
@@ -26,11 +27,13 @@ const Home: NextPage = () => {
 
   const fetchData = async () => {
     setIsFetching(true);
+    setError(null);
+
     try {
       // @TODO: add a check if env is development and then make the request to localhost
       const response = await fetch(
-        // "https://augustasm.pythonanywhere.com/tokenize",
-        "http://127.0.0.1:5000/tokenize",
+        "https://augustasm.pythonanywhere.com/tokenize",
+        // "http://127.0.0.1:5000/tokenize",
         {
           method: "POST",
           headers: {
