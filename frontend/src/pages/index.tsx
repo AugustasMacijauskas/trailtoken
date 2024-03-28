@@ -10,16 +10,18 @@ import { Button } from "~/components/Button";
 const Home: NextPage = () => {
   // @TODO: this should probably be a more sensible default or empty?
   const [tokenizerName, setTokenizerName] = useState<string>(
-    "openai-community/gpt2"
-    // "google-bert/bert-base-cased"
+    "meta-llama/Llama-2-70b-chat-hf"
   );
 
   // @TODO: this text is here for quick testing, it should be more sensible or empty
+  // "This is my favourite emoji 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿由非營利組織<|endoftext|>"
   const [inputText, setInputText] = useState<string>(
-    "This is my favourite emoji 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿由非營利組織<|endoftext|>"
+    "<s>[INST]\n<<SYS>>\n" +
+      "You are a helpful assistant.\n" +
+      "<</SYS>>\n\n" +
+      "Hi! [/INST] Hello, what can I help you with </s><s>[INST] This is my " +
+      "favourite emoji 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿由非營利組織 [/INST]<|endoftext|>"
   );
-
-  // @TODO: pridet error handling, ChatGPT siule toki:
 
   const [data, setData] = useState([]);
   const [isFetching, setIsFetching] = useState(false);

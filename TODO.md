@@ -35,6 +35,9 @@
     1. [gpt-3.5-turbo](https://huggingface.co/Xenova/gpt-3.5-turbo)
     1. [gpt-4](https://huggingface.co/Xenova/gpt-4)
         - Truputi testavau
+    1. google-bert/bert-base-cased
+    1. text-embedding-3-large
+    1. T5
     1. (low priority) [text-embedding-ada-002](https://huggingface.co/Xenova/text-embedding-ada-002)
     1. (low priority) [text-davinci-003](https://huggingface.co/Xenova/text-davinci-003)
 1. Parasyt papildomu unit tests
