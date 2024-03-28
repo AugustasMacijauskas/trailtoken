@@ -19,7 +19,6 @@ app = Flask(__name__)
 origins = [
     os.getenv("LOCALHOST_URL"),
     os.getenv("FRONTEND_URL"),
-
 ]
 origins = [origin for origin in origins if origin is not None]
 CORS(app, resources={r"/tokenize": {"origins": origins, "allow_headers": ["Content-Type"]}})
@@ -81,7 +80,7 @@ def get_segments_bert_tokenizer(tokenizer: PreTrainedTokenizerBase, input_text: 
     # @TODO: add explanations for what this code is doing
     texts = [tokenizer.decode(segment) for segment in tokens_id_list]
     texts = [text if idx == 0 or text == "" else " " + text for idx, text in enumerate(texts)]
-    texts = [text if not text.startswith(" ##") else text[1:] for text in texts]
+    texts = [text if not text.startswith(" ##") else text[3:] for text in texts]
 
     tokens = [
         [Token(id=token_id, idx=token_index) for token_id, token_index in zip(token_ids, token_indices)]
@@ -110,11 +109,18 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
     curr_text = ""
     curr_tokens: list[Token] = []
     for idx, token_id in enumerate(encoding):
-        curr_text = tokenizer.decode([token.id for token in curr_tokens] + [token_id])
+        curr_text = tokenizer.decode(
+            [token.id for token in curr_tokens] + [token_id], clean_up_tokenization_spaces=False
+        )
 
         curr_tokens.append(Token(id=token_id, idx=idx))
 
-        if idx > 0 and id2token[curr_tokens[0].id].startswith("▁"):
+        # Last condition handles not adding a space when trying to decode "<s>Text" using LLaMA
+        if (
+            idx > 0
+            and id2token[curr_tokens[0].id].startswith("▁")
+            and segments[-1].tokens[0].id != tokenizer.bos_token_id
+        ):
             curr_text = " " + curr_text
 
         curr_graphemes = list(grapheme.graphemes(curr_text))
@@ -124,7 +130,7 @@ def get_segments(tokenizer: PreTrainedTokenizerBase, input_text: str) -> list[di
         ):
             segments.append(Segment(text=curr_text, tokens=curr_tokens))
 
-            graphemes = graphemes[len(curr_graphemes):]            
+            graphemes = graphemes[len(curr_graphemes):]
             curr_text = ""
             curr_tokens = []
 
