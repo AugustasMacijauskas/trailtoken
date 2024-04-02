@@ -19,8 +19,9 @@ const Home: NextPage = () => {
     "<s>[INST]\n<<SYS>>\n" +
       "You are a helpful assistant.\n" +
       "<</SYS>>\n\n" +
-      "Hi! [/INST] Hello, what can I help you with </s><s>[INST] This is my " +
-      "favourite emoji 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿由非營利組織 [/INST]<|endoftext|>"
+      "Hi! [/INST] Hello, what can I help you with </s><s>[INST] These are my " +
+      "favourite emojis 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿, and these are as some Chinese " +
+      "characters 由非營利組織 [/INST]"
   );
 
   const [data, setData] = useState([]);
