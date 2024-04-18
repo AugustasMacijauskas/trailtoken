@@ -1,6 +1,6 @@
 # trailtoken
 
-An application that visualises open source LLM tokenizers.
+An tool to visualise open source LLM tokenizers.
 
 
 # Usage
@@ -53,9 +53,9 @@ You can cite this work by using the following
 ```bibtex
 @misc{trailtoken2024,
   author = {Lopata, Laurynas and Macijauskas, Augustas},
-  title = {trailtoken: {O}pen {S}ource {LLM} {V}isualiser},
+  title = {trailtoken: {O}pen {S}ource {LLM} {T}okenizer {V}isualisation {T}ool},
   year = {2024},
   howpublished = {\url{https://augustasmacijauskas.github.io/trailtoken/}},
-  note = {Accessed: 2024-04-02}
+  note = {Accessed: 2024-04-18}
 }
 ```
