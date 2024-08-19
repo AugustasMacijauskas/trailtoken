@@ -6,6 +6,7 @@
 1. ~~Pakeist tiktokenizer API calls i `tokenizers-js`~~ -> nepaejo
 1. ~~Panasu, kad python backend veikia, vienintelis, ka reikia padaryt, tai fronte gavus atsakyma is backend pramappint `text -> graphemer.splitGraphemes(text)` (kitaip emoji nesusirenderina)~~ -> Issisprende, kai buvo perrasytas algoritmas
 1. Kode pilna `TODO`, reikia pro juos praeit
+1. Gal padetu supaprastint koda: https://github.com/stanford-crfm/helm/issues/1516
 1. Pridet authentication backende, kad tik mes galetume kreiptis. Jauciu reikia sugeneruot koki unique string ir tada fronte ji issiust is kokio `.env` uzloadinus, o backende tikrint, ar sutampa atsiustas string.
 1. Dabar leidziam visus origins (CORS check isjungtas). Reiktu issiaiskint, koks turetu but realybej
 1. ~~Padaryt input field tokenizerio pavadinimui (dabar ten yra `TextArea` componentas, turetu but kazkas kaip TextInput, kur ne multiline)~~

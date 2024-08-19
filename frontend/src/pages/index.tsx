@@ -10,18 +10,17 @@ import { Button } from "~/components/Button";
 const Home: NextPage = () => {
   // @TODO: this should probably be a more sensible default or empty?
   const [tokenizerName, setTokenizerName] = useState<string>(
-    "meta-llama/Llama-2-70b-chat-hf"
+    "meta-llama/Meta-Llama-3.1-405B-Instruct"
   );
 
   // @TODO: this text is here for quick testing, it should be more sensible or empty
   // "This is my favourite emoji 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿由非營利組織<|endoftext|>"
   const [inputText, setInputText] = useState<string>(
-    "<s>[INST]\n<<SYS>>\n" +
-      "You are a helpful assistant.\n" +
-      "<</SYS>>\n\n" +
-      "Hi! [/INST] Hello, what can I help you with </s><s>[INST] These are my " +
-      "favourite emojis 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧 🇨🇿, and these are as some Chinese " +
-      "characters 由非營利組織 [/INST]"
+    "Not all tokenizers are equally good at tokenizing various pieces of " +
+      "text. For example, most of them are rather inefficient at tokenizing " +
+      "emojis 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧, but the Llama 3 tokenizer is much better at " +
+      "tokenizing non-Latin script languages, such as Chinese (notice how " +
+      "all characters are no more then one token each): 由非營利組織"
   );
 
   const [data, setData] = useState([]);
