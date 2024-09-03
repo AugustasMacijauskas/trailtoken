@@ -20,7 +20,7 @@ const Home: NextPage = () => {
       "text. For example, most of them are rather inefficient at tokenizing " +
       "emojis 😁👩‍👦‍👦 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👧, but the Llama 3 tokenizer is much better at " +
       "tokenizing non-Latin script languages, such as Chinese (notice how " +
-      "all characters are no more then one token each): 由非營利組織"
+      "all characters are no more than one token each): 由非營利組織"
   );
 
   const [data, setData] = useState([]);
